@@ -1,0 +1,20 @@
+services:
+  ffc-payment-integrations:
+    build:
+      context: .
+    image: ffc-payment-integrations
+    container_name: ffc-payment-integrations
+    ports:
+      - 3000:80
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      APPINSIGHTS_CLOUDROLE: ffc-payment-integrations-local
+      FUNCTIONS_WORKER_RUNTIME: dotnet-isolated
+      AzureWebJobsStorage: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://host.docker.internal:10000/devstoreaccount1;QueueEndpoint=http://host.docker.internal:10001/devstoreaccount1;TableEndpoint=http://host.docker.internal:10002/devstoreaccount1;
+      AzureWebJobsQueueConnectionString: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://host.docker.internal:10000/devstoreaccount1;QueueEndpoint=http://host.docker.internal:10001/devstoreaccount1;TableEndpoint=http://host.docker.internal:10002/devstoreaccount1;
+      AzureWebJobsSecretStorageType: files
+      NotifyApiKey: 
+      ServiceBusConnectionString:
+      ServiceBusTopicName: ffc-pay-statement-crm-snd
+      ServiceBusSubscriptionName: crm

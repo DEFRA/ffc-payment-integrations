@@ -1,0 +1,16 @@
+version: '3.8'
+
+# This override file should be used to run automated tests in a
+# containerised environment.
+
+services:
+  ffc-payment-integrations:
+    build:
+      target: development
+    image: ffc-payment-integrations-development
+    container_name: ffc-payment-integrations-test
+    entrypoint: dotnet test ./FFC.Payment.Integrations.Function.Tests/FFC.Payment.Integrations.Function.Tests.csproj /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput='./test-output/'
+    volumes:
+      - ./RPAMITNotificationFunction:/home/dotnet/RPAMITNotificationFunction
+      - ./RPAMITNotificationFunction.Tests:/home/dotnet/RPAMITNotificationFunction.Tests
+      - ./test-output:/home/dotnet/RPAMITNotificationFunction.Tests/test-output

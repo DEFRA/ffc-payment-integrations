@@ -1,0 +1,12 @@
+# This override file should be used when running this service in isolation
+# to provide dependencies and expose ports for local testing
+
+services:
+  ffc-payment-integrations:
+    image: ffc-payment-integrations-development
+    container_name: ffc-payment-integrations-development
+    ports:
+      - "3001:80"
+    volumes:
+      - ./RPAMITNotificationFunction:/home/dotnet/RPAMITNotificationFunction
+      - ./RPAMITNotificationFunction.Tests:/home/dotnet/RPAMITNotificationFunction.Tests
