@@ -1,6 +1,8 @@
 
+using System.Net.Http;
 using System.Threading.Tasks;
 using FFC.Payment.Integrations.Function.Models;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace FFC.Payment.Integrations.Function.Services;
 
@@ -66,4 +68,11 @@ public interface ICrmService
     /// <param name="authToken">auth token previously obtained</param>
     /// <returns></returns>
     Task CreateLogRecord(string runId, string runType, string errorReason, string progressText, CrmAuthToken authToken = null);
+
+    /// <summary>
+    /// Determines if the HTTP call is from a CRM web page (or just a user pasting a link into a browser)
+    /// </summary>
+    /// <param name="req">HTTP request</param>
+    /// <returns>true if from a CRM web page</returns>
+    bool IsCallFromCrm(HttpRequestData req);
 }

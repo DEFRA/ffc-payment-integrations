@@ -1,8 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -26,8 +23,9 @@ var host = new HostBuilder()
 
         services.AddHttpClient();
         services.AddSingleton<INotificationClient>(_ => new NotificationClient(configuration.GetSection("NotifyApiKey").Value));
-        services.AddSingleton<INotifyService, NotifyService>();
+        services.AddSingleton<INotifyService, NotifyService>(); // Left this in if we want to send alert emails in case of run errors
         services.AddSingleton<ICrmService, CrmService>();
+        services.AddSingleton<IPdfService, PdfService>();
 
         services.AddQueueAndTableServices(configuration);
     })

@@ -2,21 +2,17 @@ using FFC.Payment.Integrations.Function.Services;
 using FFC.Payment.Integrations.Function.Validation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
-using System.Collections.Generic;
 using System.Net;
 using Microsoft.Azure.Functions.Worker.Http;
 using FFC.Payment.Integrations.Function.Models;
 using Newtonsoft.Json;
 using FFC.Payment.Integrations.Function.Helpers;
 using System.Net.Http;
-using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
 using System.Text;
-using System.Threading;
+using System.Linq;
 using Azure.Messaging.ServiceBus;
 
 namespace FFC.Payment.Integrations
@@ -27,7 +23,7 @@ namespace FFC.Payment.Integrations
     public class FunctionTriggers
     {
         private readonly ICrmService _crmService;
-        private readonly INotifyService _notifyService;
+        private readonly IPdfService _pdfService;
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
@@ -35,13 +31,13 @@ namespace FFC.Payment.Integrations
         /// Constructor for Triggers
         /// </summary>
         /// <param name="crmService"></param>
-        /// <param name="notifyService"></param>
+        /// <param name="pdfService"></param>
         /// <param name="configuration"></param>
         /// <param name="loggerFactory"></param>
-        public FunctionTriggers(ICrmService crmService, INotifyService notifyService, IConfiguration configuration, ILoggerFactory loggerFactory)
+        public FunctionTriggers(ICrmService crmService, IPdfService pdfService, IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             _crmService = crmService;
-            _notifyService = notifyService;
+            _pdfService = pdfService;
             _configuration = configuration;
             _logger = loggerFactory.CreateLogger<FunctionTriggers>();
         }
@@ -132,11 +128,49 @@ namespace FFC.Payment.Integrations
         {
             _logger.LogInformation("FFC ServeStatement trigger function processing: {req}", req);
 
-            await Task.FromResult(false);
+            try
+            {
+                // Only allow calls from a CRM web page, not someone pasting a link into a browser
+                if (!_crmService.IsCallFromCrm(req))
+                {
+                    return req.CreateResponse(HttpStatusCode.BadRequest);
+                }
 
-            return req.CreateResponse(HttpStatusCode.OK);
+                var filename = req.Query.HasKeys() ? req.Query.GetValues("id").FirstOrDefault() : string.Empty;
+
+                if (string.IsNullOrEmpty(filename))
+                {
+                    return req.CreateResponse(HttpStatusCode.BadRequest);
+                }
+
+                // Get PDF from service
+                var content = await _pdfService.GetPdfContent(filename);
+
+                if (content == null || content.Length == 0)
+                {
+                    return req.CreateResponse(HttpStatusCode.NotFound);
+                }
+
+                // Serve PDF content
+                return _pdfService.ServePDFContents(req, content);
+
+            }
+            catch (Exception exc)
+            {
+                _logger.LogError(exc, $"Error occurred processing HTTP call. {exc.Message}");
+                return req.CreateResponse(HttpStatusCode.InternalServerError);
+            }
         }
 
+        /// <summary>
+        /// Process any failure conditions. Currently this writes to an interface table in the CRM which is manually checked daily
+        /// by the CRM team. Ideally, an alert email would be sent instead.
+        /// </summary>
+        /// <param name="runId"></param>
+        /// <param name="reason"></param>
+        /// <param name="progressText"></param>
+        /// <param name="authToken"></param>
+        /// <returns></returns>
         private async Task ProcessFailure(string runId, string reason, string progressText, CrmAuthToken authToken = null)
         {
             await _crmService.CreateLogRecord(runId, "FFC", reason, progressText, authToken);

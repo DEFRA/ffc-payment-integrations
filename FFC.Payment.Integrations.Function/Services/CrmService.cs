@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 using FFC.Payment.Integrations.Function.Helpers;
 using FFC.Payment.Integrations.Function.Models;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -111,6 +114,14 @@ public class CrmService : ICrmService
         var body = $"{{ \"rpa_name\": \"{runId}\", \"rpa_processingentity\": \"{runTypeId}\", \"rpa_xmlmessage\": \"Failed function app: {errorReason} \nError text: {FfcHelper.EscapeDoubleQuotes(progressText)}\"}}";
         msg.Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
         await PostAndParseResultAsync(msg);
+    }
+
+    /// <inheritdoc/>
+    public bool IsCallFromCrm(HttpRequestData req)
+    {
+        IEnumerable<string> referVals = null;
+        req.Headers?.TryGetValues("Referer", out referVals);
+        return (referVals != null && referVals.FirstOrDefault() != null && referVals.FirstOrDefault().StartsWith(_crmBaseUrl));
     }
 
     /// <summary>
