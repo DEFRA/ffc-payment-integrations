@@ -33,9 +33,11 @@
   <ItemGroup>
     <None Remove="Services\" />
     <None Remove="Mocks\" />
+    <None Remove="Helpers\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Services\" />
     <Folder Include="Mocks\" />
+    <Folder Include="Helpers\" />
   </ItemGroup>
 </Project>

@@ -3,9 +3,8 @@ using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Notify.Client;
-using Notify.Interfaces;
 using FFC.Payment.Integrations.Function.Services;
+using FFC.Payment.Integrations.Function.Helpers;
 
 var host = new HostBuilder()
     .ConfigureAppConfiguration(config => config
@@ -22,10 +21,9 @@ var host = new HostBuilder()
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();
 
         services.AddHttpClient();
-        services.AddSingleton<INotificationClient>(_ => new NotificationClient(configuration.GetSection("NotifyApiKey").Value));
-        services.AddSingleton<INotifyService, NotifyService>(); // Left this in if we want to send alert emails in case of run errors
         services.AddSingleton<ICrmService, CrmService>();
         services.AddSingleton<IPdfService, PdfService>();
+        services.AddSingleton<IDateFunctions, DateFunctions>();
 
         services.AddQueueAndTableServices(configuration);
     })

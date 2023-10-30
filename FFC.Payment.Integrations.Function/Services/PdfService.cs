@@ -26,7 +26,7 @@ public class PdfService : IPdfService
     public PdfService(IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
         _configuration = configuration;
-        _httpClient = httpClientFactory.CreateClient();
+        _httpClient = httpClientFactory.CreateClient("pdf-client");
         _serviceBaseUrl = _configuration.GetSection("PdfServiceBaseUrl").Value;
     }
 

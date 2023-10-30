@@ -10,6 +10,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using static Microsoft.Azure.Amqp.CbsConstants;
 
 namespace FFC.Payment.Integrations.Function.Services;
 
@@ -18,6 +19,7 @@ public class CrmService : ICrmService
 {
     private readonly IConfiguration _configuration;
     private readonly HttpClient _httpClient;
+    private readonly IDateFunctions _dateFunctions;
     private readonly string _tokenEndpoint;
     private readonly string _crmBaseUrl;
 
@@ -31,10 +33,11 @@ public class CrmService : ICrmService
     private static readonly string RLE1_ERROR = "927350005";
 
     /// <inheritdoc/>
-    public CrmService(IConfiguration configuration, IHttpClientFactory httpClientFactory)
+    public CrmService(IConfiguration configuration, IHttpClientFactory httpClientFactory, IDateFunctions dateFunctions)
     {
         _configuration = configuration;
-        _httpClient = httpClientFactory.CreateClient();
+        _httpClient = httpClientFactory.CreateClient("crm-client");
+        _dateFunctions = dateFunctions;
         var adLoginBaseUrl = _configuration.GetSection("AdLoginBaseUrl").Value;
         var portalTenantId = _configuration.GetSection("PortalTenantId").Value;
         _tokenEndpoint = $"{adLoginBaseUrl}/{portalTenantId}/oauth2/token";
@@ -47,7 +50,9 @@ public class CrmService : ICrmService
         var portalClientId = _configuration.GetSection("PortalClientId").Value;
         var portalClientSecret = _configuration.GetSection("PortalClientSecret").Value;
         var body = $"grant_type=client_credentials&client_id={portalClientId}&client_secret={HttpUtility.UrlEncode(portalClientSecret)}&resource={HttpUtility.UrlEncode(_crmBaseUrl)}";
-        var httpResponse = await _httpClient.PostAsync(_tokenEndpoint, new StringContent(body, System.Text.Encoding.UTF8, "application/x-www-form-urlencoded"));
+        var msg = new HttpRequestMessage(HttpMethod.Post, _tokenEndpoint);
+        msg.Content = new StringContent(body, System.Text.Encoding.UTF8, "application/x-www-form-urlencoded");
+        var httpResponse = await _httpClient.SendAsync(msg);
         string resp = await httpResponse.Content.ReadAsStringAsync();
         return JsonConvert.DeserializeObject<CrmAuthToken>(resp);
     }
@@ -60,7 +65,7 @@ public class CrmService : ICrmService
         var httpResponse = await _httpClient.SendAsync(msg);
         var resp = await httpResponse.Content.ReadAsStringAsync();
         var crmGenericObj = JsonConvert.DeserializeObject<CrmGenericGetResponse<CrmOrganisation>>(resp);
-        return crmGenericObj.value[0];
+        return crmGenericObj?.value[0];
     }
 
     /// <inheritdoc/>
@@ -80,7 +85,7 @@ public class CrmService : ICrmService
         var msg = new HttpRequestMessage(HttpMethod.Post, $"{_crmBaseUrl}{CREATE_ACTIVITY_URL}");
         AddAuthHeader(msg, authToken);
         AddReturnTypeHeader(msg);
-        var utcDateTime = DateTime.UtcNow;
+        var utcDateTime = _dateFunctions.GetUtcNow();
         var body = $"{{ \"regardingobjectid_incident_rpa_customernotification@odata.bind\": \"/incidents({caseId})\", \"rpa_contact_rpa_customernotification@odata.bind\": \"/contacts(65879706-0798-e411-9412-00155deb6486)\", \"rpa_datesent\": \"{utcDateTime}\", \"rpa_documenttype_rpa_customernotification@odata.bind\": \"/rpa_documenttypeses(3de06e3d-2b5c-ed11-9562-0022489931ca)\", \"rpa_hasattachment\": \"true\", \"rpa_organisation_rpa_customernotification@odata.bind\": \"/accounts({organisationId})\", \"subject\": \"SFI {payloadYear} Payment Statement File - Sent via Notify\"}}";
         msg.Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
         return await PostAndParseResultAsync(msg, "activityid");
@@ -91,7 +96,6 @@ public class CrmService : ICrmService
     {
         var msg = new HttpRequestMessage(HttpMethod.Post, $"{_crmBaseUrl}{CREATE_METADATA_URL}");
         AddAuthHeader(msg, authToken);
-        var utcDateTime = DateTime.UtcNow;
         var body = $"{{ \"rpa_CustomerNotificationId@odata.bind\": \"/rpa_customernotifications({activityId})\", \"rpa_RelatedCase@odata.bind\": \"/incidents({caseId})\", \"rpa_contact@odata.bind\": \"/contacts(65879706-0798-e411-9412-00155deb6486)\", \"rpa_direction\": \"false\", \"rpa_docrefproxy\": \"SFIPS\", \"rpa_fileabsoluteurl\": \"{functionEndpoint}{functionSasToken}&id={filename}\", \"rpa_filename\": \"{filename}\", \"rpa_organisation@odata.bind\": \"/accounts({organisationId})\", \"rpa_sbi\": \"{sbi}\"}}";
         msg.Content = new StringContent(body, System.Text.Encoding.UTF8, "application/json");
         await PostAndParseResultAsync(msg);
@@ -119,9 +123,20 @@ public class CrmService : ICrmService
     /// <inheritdoc/>
     public bool IsCallFromCrm(HttpRequestData req)
     {
+        if (req == null)
+        {
+            return false;
+        }
+
         IEnumerable<string> referVals = null;
         req.Headers?.TryGetValues("Referer", out referVals);
         return (referVals != null && referVals.FirstOrDefault() != null && referVals.FirstOrDefault().StartsWith(_crmBaseUrl));
+    }
+
+    /// <inheritdoc/>
+    public string GetUtcNow()
+    {
+        return DateTime.UtcNow.ToString();
     }
 
     /// <summary>
