@@ -124,7 +124,7 @@ namespace FFC.Payment.Integrations
         /// <returns></returns>
         [Function("ServeStatement")]
         public async Task<HttpResponseData> ServeStatement(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
+            [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req)
         {
             _logger.LogInformation("FFC ServeStatement trigger function processing: {req}", req);
 
