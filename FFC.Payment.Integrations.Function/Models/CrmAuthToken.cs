@@ -1,8 +1,11 @@
-﻿namespace FFC.Payment.Integrations.Function.Models
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace FFC.Payment.Integrations.Function.Models
 {
 	/// <summary>
 	/// Model for auth token for CRM
 	/// </summary>
+	[ExcludeFromCodeCoverage]
 	public class CrmAuthToken
 	{
 		/// <summary>

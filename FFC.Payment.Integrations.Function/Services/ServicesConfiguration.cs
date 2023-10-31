@@ -2,12 +2,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using System;
 using Azure.Identity;
+using System.Diagnostics.CodeAnalysis;
 
 namespace FFC.Payment.Integrations.Function.Services
 {
     /// <summary>
     /// Register service-tier services.
     /// </summary>
+	[ExcludeFromCodeCoverage]
     public static class ServicesConfiguration
     {
         /// <summary>

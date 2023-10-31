@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using FFC.Payment.Integrations.Function.Services;
 using FFC.Payment.Integrations.Function.Helpers;
+using System.Diagnostics.CodeAnalysis;
 
 var host = new HostBuilder()
     .ConfigureAppConfiguration(config => config
@@ -30,3 +31,9 @@ var host = new HostBuilder()
     .Build();
 
 host.Run();
+
+/// <summary>
+/// Dummy constructor so the attribute [ExcludeFromCodeCoverage] can be used
+/// </summary>
+[ExcludeFromCodeCoverage]
+public partial class Program { }
