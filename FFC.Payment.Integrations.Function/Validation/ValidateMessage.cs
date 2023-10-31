@@ -5,7 +5,7 @@ using Newtonsoft.Json.Schema;
 namespace FFC.Payment.Integrations.Function.Validation
 {
     /// <summary>
-    /// Emthods and schema for validating incoming message
+    /// Methods and schema for validating incoming message
     /// </summary>
     public static class ValidateMessage
     {

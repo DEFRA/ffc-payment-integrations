@@ -28,7 +28,7 @@ namespace FFC.Payment.Integrations
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Constructor for Triggers
+        /// Constructor for FunctionTriggers
         /// </summary>
         /// <param name="crmService"></param>
         /// <param name="pdfService"></param>
@@ -118,7 +118,7 @@ namespace FFC.Payment.Integrations
         }
 
         /// <summary>
-        /// Test HTTP trigger
+        /// Deliver a PDF statement to a user's browser
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>

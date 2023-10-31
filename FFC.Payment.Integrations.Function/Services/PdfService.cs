@@ -1,28 +1,25 @@
-using System;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Web;
-using FFC.Payment.Integrations.Function.Helpers;
-using FFC.Payment.Integrations.Function.Models;
-using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace FFC.Payment.Integrations.Function.Services;
 
-/// <inheritdoc/>
+/// <summary>
+/// Service to communicate with the FFC payment statement receiver PDF service
+/// </summary>
 public class PdfService : IPdfService
 {
     private readonly IConfiguration _configuration;
     private readonly HttpClient _httpClient;
     private readonly string _serviceBaseUrl;
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Constructore for PdfService
+    /// </summary>
+    /// <param name="configuration"></param>
+    /// <param name="httpClientFactory"></param>
     public PdfService(IConfiguration configuration, IHttpClientFactory httpClientFactory)
     {
         _configuration = configuration;
@@ -30,13 +27,22 @@ public class PdfService : IPdfService
         _serviceBaseUrl = _configuration.GetSection("PdfServiceBaseUrl").Value;
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves the byte contents of a PDF. The endpoint of the service is set in configuration settings
+    /// </summary>
+    /// <param name="filename">filename of PDF</param>
+    /// <returns>byte content of PDF</returns>
     public async Task<byte[]> GetPdfContent(string filename)
     {
         return await _httpClient.GetByteArrayAsync($"{_serviceBaseUrl}/statements/statement/{filename}");
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Serve the contents of a PDF to the browser
+    /// </summary>
+    /// <param name="req">HTTP request</param>
+    /// <param name="content">byte content of PDF</param>
+    /// <returns></returns>
     public HttpResponseData ServePDFContents(HttpRequestData req, byte[] content)
     {
         HttpResponseData response = req.CreateResponse(HttpStatusCode.OK);

@@ -25,8 +25,6 @@ var host = new HostBuilder()
         services.AddSingleton<ICrmService, CrmService>();
         services.AddSingleton<IPdfService, PdfService>();
         services.AddSingleton<IDateFunctions, DateFunctions>();
-
-        services.AddQueueAndTableServices(configuration);
     })
     .Build();
 

@@ -1,5 +1,4 @@
 
-using System.Net.Http;
 using System.Threading.Tasks;
 using FFC.Payment.Integrations.Function.Models;
 using Microsoft.Azure.Functions.Worker.Http;
