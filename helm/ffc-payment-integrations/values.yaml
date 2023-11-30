@@ -1,0 +1,79 @@
+environment: development
+name: ffc-payment-integrations
+namespace: ffc-rpa
+workstream: ffc-rpa
+image: ffc-payment-integrations
+
+labels: {}
+
+aadPodIdentity: true
+
+appInsights:
+  key:
+
+azureIdentity:
+  clientID: not-a-real-clientID
+  resourceID: not-a-real-resourceID
+
+containerConfigMap:
+  name: ffc-payment-integrations-config-map
+
+containerSecret:
+  name: ffc-payment-integrations-container-secret
+  type: Opaque
+
+deployment:
+  cpuThreshold: 80
+  memoryThreshold: 80
+  minReadySeconds: 0
+  minReplicas: 1
+  maxReplicas: 1
+  priorityClassName: default
+  replicas: 1
+  restartPolicy: Always
+
+container:
+  imagePullPolicy: IfNotPresent
+  requestMemory: 120Mi
+  requestCpu: 5m
+  limitMemory: 120Mi
+  limitCpu: 120m
+  port: 3000
+  functionsWorkerRuntime: dotnet-isolated
+  azureWebJobsSecretStorageType: files
+  azureWebJobsStorage: secret
+  functionSasToken: secret
+  notifyApiKey: secret
+  portalClientId: secret
+  portalClientSecret: secret
+  portalTenantId: secret
+  adLoginBaseUrl: value-from-app-config-service
+  crmBaseUrl: value-from-app-config-service
+  functionEndpoint: value-from-app-config-service
+  serviceBusConnectionString__credential: value-from-app-config-service
+  serviceBusConnectionString__fullyQualifiedNamespace: value-from-app-config-service
+  serviceBusTopicName: value-from-app-config-service
+  serviceBusSubscriptionName: value-from-app-config-service
+
+service:
+  port: 80
+  type: ClusterIP
+
+ingress:
+  class: nginx
+  endpoint: ffc-payment-integrations
+  server: value.replaced.from.app.config
+
+livenessProbe:
+  path: /healthz
+  port: 3000
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  failureThreshold: 3
+
+readinessProbe:
+  path: /healthy
+  port: 3000
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  failureThreshold: 3

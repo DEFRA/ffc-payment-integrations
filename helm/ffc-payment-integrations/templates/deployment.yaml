@@ -1,0 +1,8 @@
+{{- include "ffc-helm-library.deployment" (list . "ffc-payment-integrations.deployment") -}}
+{{- define "ffc-payment-integrations.deployment" -}}
+spec:
+  template:
+    spec:
+      containers:
+      - {{ include "ffc-helm-library.container" (list . "ffc-payment-integrations.container") }}
+{{- end -}}

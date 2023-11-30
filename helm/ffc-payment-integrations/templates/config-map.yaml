@@ -1,0 +1,15 @@
+{{- include "ffc-helm-library.container-config-map" (list . "ffc-payment-integrations.config-map") -}}
+{{- define "ffc-payment-integrations.config-map" -}}
+data:
+  PORT: {{ quote .Values.container.port }}
+  APPINSIGHTS_CLOUDROLE: {{ quote .Values.name }}
+  FUNCTIONS_WORKER_RUNTIME: {{ quote .Values.container.functionsWorkerRuntime }}
+  ServiceBusTopicName: {{ quote .Values.container.serviceBusTopicName }}
+  ServiceBusSubscriptionName: {{ quote .Values.container.serviceBusSubscriptionName }}
+  ServiceBusConnectionString__credential: {{ quote .Values.container.serviceBusConnectionString__credential }}
+  ServiceBusConnectionString__fullyQualifiedNamespace: {{ quote .Values.container.serviceBusConnectionString__fullyQualifiedNamespace }}
+  AzureWebJobsSecretStorageType: {{ quote .Values.container.azureWebJobsSecretStorageType }}
+  CrmBaseUrl: {{ quote .Values.container.crmBaseUrl }}
+  AdLoginBaseUrl: {{ quote .Values.container.adLoginBaseUrl }}
+  FunctionEndpoint: {{ quote .Values.container.functionEndpoint }}
+{{- end -}}
